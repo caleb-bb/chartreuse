@@ -5,7 +5,8 @@ defmodule PageScrape do
   alias HTTPoison
 
   def html_as_string(url) do
-    {:ok, response} = HTTPoison.get(url)
+    {:ok, response} = url
+    |> HTTPoison.get()
     response.body
   end
 
