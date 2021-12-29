@@ -5,12 +5,12 @@ defmodule Spider do
 
     uncrawled_links = PageScrape.parent_domain_links(url)
     |> new()
+    |> union(must_crawl)
     |> difference(have_crawled)
-
 
     case size(uncrawled_links) do
       0 -> have_crawled
-      _ -> domain_crawler(next,uncrawled_links,put(have_crawled,url))
+      _ -> domain_crawler(hd(to_list(uncrawled_links)),uncrawled_links,put(have_crawled,url))
     end
   end
 
@@ -18,3 +18,4 @@ defmodule Spider do
       domain_crawler(url,new([url]),new([]))
     end
 end
+
