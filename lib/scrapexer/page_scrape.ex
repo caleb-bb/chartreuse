@@ -41,19 +41,33 @@ defmodule PageScrape do
     |> retrieve_elements(selector)
   end
 
+  def is_a_link?(string) do
+    Regex.match?(~r/http/, string) or Regex.match?(~r/.html/, string)
+  end
+
+  def complete_incomplete_link(link,domain) do
+    if Regex.match?(~r/html/,link) and not Regex.match?(~r/http/,link) do
+      domain <> "/" <> link
+    else
+      link
+    end
+  end
+
   def janky_link_collector(url) do
     url
-    |> PageScrape.parse_item
+    |> parse_item
     |> Floki.find("a")
     |> Enum.flat_map(fn x -> elem(x,1) end)
     |> Enum.map(fn x -> elem(x,1) end)
-    |> Enum.filter(fn x -> Regex.match?(~r/http/,x) end)
+    |> Enum.filter(fn x -> is_a_link?(x) end)
   end
 
   def domain_specific_links(domain,url) do
     url
     |> janky_link_collector
+    |> Enum.map(fn x -> complete_incomplete_link(x,domain) end)
     |> Enum.filter(fn x -> Regex.match?(~r/#{domain}/,x) end)
+    |> Enum.uniq
   end
 
   def parent_domain_links(url) do

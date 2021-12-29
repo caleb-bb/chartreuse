@@ -7,9 +7,10 @@ defmodule Spider do
     |> new()
     |> union(must_crawl)
     |> difference(have_crawled)
+    |> delete(url)
 
     case size(uncrawled_links) do
-      0 -> have_crawled
+      0 -> to_list(have_crawled)
       _ -> domain_crawler(hd(to_list(uncrawled_links)),uncrawled_links,put(have_crawled,url))
     end
   end
