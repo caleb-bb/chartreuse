@@ -15,7 +15,6 @@ defmodule Scrapexer do
     |> hd
     |> String.split(".")
     |> hd
-
   end
 
   def create_html_file_name(url) do
@@ -29,7 +28,6 @@ defmodule Scrapexer do
       "" -> "main.html"
       _ -> filename
     end
-
   end
 
   def writefile(url) do
@@ -47,7 +45,6 @@ defmodule Scrapexer do
   def write_all(url) do
     Spider.domain_crawler(url)
     |> Enum.map(fn x -> writefile(x) end)
-
   end
 
 end
