@@ -2,7 +2,7 @@ defmodule PageScrapeTest do
   import PageScrape
   use ExUnit.Case
 
-  test "reads correct list of links" do
+  test "links_from_html" do
     {:ok, collected_links} = File.read("test/resources/page_scrape/collected_links")
 
     expected_links = String.split(collected_links,"\n")
