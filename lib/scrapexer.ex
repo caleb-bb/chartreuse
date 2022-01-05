@@ -9,7 +9,7 @@ defmodule Scrapexer do
 
   def create_directory_name(url) do
     url
-    |> PageScrape.base_url
+    |> PageScrape.base_url()
     |> String.split("www.")
     |> tl
     |> hd
@@ -18,11 +18,13 @@ defmodule Scrapexer do
   end
 
   def create_html_file_name(url) do
-    filename = url
-    |> String.split(".org")
-    |> tl
-    |> hd
-    |> String.replace(~r/\//,"_") #replace slashes with underscores to avoid directory problems
+    filename =
+      url
+      |> String.split(".org")
+      |> tl
+      |> hd
+      # replace slashes with underscores to avoid directory problems
+      |> String.replace(~r/\//, "_")
 
     case filename do
       "" -> "main.html"
@@ -30,21 +32,21 @@ defmodule Scrapexer do
     end
   end
 
-  def writefile(url) do
+  def write_html(url) do
     directory = create_directory_name(url)
     filename = create_html_file_name(url)
     path = directory <> "/" <> filename
     text = PageScrape.html_as_string(url)
 
     File.mkdir(directory)
-    {:ok, file} = File.open(path, [:write,:read,:utf8])
+    {:ok, file} = File.open(path, [:write, :read, :utf8])
 
     IO.puts(file, text)
   end
 
-  def write_all(url) do
+  def write_all_html(url) do
     Spider.domain_crawler(url)
-    |> Enum.map(fn x -> writefile(x) end)
+    |> Enum.map(fn x -> write_html(x) end)
   end
 
 end

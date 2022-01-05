@@ -18,9 +18,9 @@ defmodule PageScrape do
   def init(urls), do: [start_urls: urls]
 
   def parse_item(url) do
-    {:ok, parsed_doc} = html_as_string(url)
+    {:ok, parsed} = html_as_string(url)
     |> Floki.parse_document()
-    parsed_doc
+    parsed
   end
 
   def retrieve_elements(parsed_doc,selector) do
@@ -47,33 +47,50 @@ defmodule PageScrape do
 
   def complete_incomplete_link(link,domain) do
     if Regex.match?(~r/html/,link) and not Regex.match?(~r/http/,link) do
-      domain <> "/" <> link
+      unless String.at(link,0) == "/", do: domain <> "/" <> link, else: domain <> link
     else
       link
-    end
+     end
   end
 
-  def janky_link_collector(url) do
+  def site_text(url) do
+    url
+    |> retrieve_from_url("p")
+  end
+
+  def links_from_html(parsed_doc) do
+    parsed_doc
+    |> Floki.find("a")
+    |> Enum.flat_map(&(elem(&1,1)))
+    |> Enum.filter(&(elem(&1,0) == "href"))
+    |> Enum.map(&(elem(&1,1)))
+    end
+
+  def links_from_url(url) do
     url
     |> parse_item
-    |> Floki.find("a")
-    |> Enum.flat_map(fn x -> elem(x,1) end)
-    |> Enum.map(fn x -> elem(x,1) end)
-    |> Enum.filter(fn x -> is_a_link?(x) end)
+    |> links_from_html
   end
 
-  def domain_specific_links(domain,url) do
-    url
-    |> janky_link_collector
-    |> Enum.map(fn x -> complete_incomplete_link(x,domain) end)
-    |> Enum.filter(fn x -> Regex.match?(~r/#{domain}/,x) end)
+  def domain_links_from_html(parsed_doc, domain) do
+    parsed_doc
+    |> links_from_html
+    |> Enum.map(&(complete_incomplete_link(&1,domain) ))
+    |> Enum.filter(&(Regex.match?(~r/#{domain}/,&1) ))
     |> Enum.uniq
+    |> Enum.map(&(complete_incomplete_link(&1,domain)))
+  end
+
+  def domain_links_from_url(domain,url) do
+    url
+    |> parse_item
+    |> domain_links_from_html(domain)
   end
 
   def parent_domain_links(url) do
     url
     |> base_url
-    |> domain_specific_links(url)
+    |> domain_links_from_url(url)
   end
 
 end
