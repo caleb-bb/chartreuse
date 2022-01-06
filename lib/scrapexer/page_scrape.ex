@@ -21,24 +21,6 @@ defmodule PageScrape do
     parsed
   end
 
-  def retrieve_elements(parsed_doc,selector) do
-    parsed_doc
-    |> Floki.find(selector)
-    #|> Floki.text(sep: ":::::")
-  end
-
-  def list_of_elements(parsed_doc,selector) do
-    retrieve_elements(parsed_doc, selector)
-    |> Floki.text(sep: ":::::")
-    |> String.split(~r/:::::/)
-  end
-
-  def retrieve_from_url(url, selector) do
-    url
-    |> parse_item
-    |> retrieve_elements(selector)
-  end
-
   def is_a_link?(string) do
     Regex.match?(~r/http/, string) or Regex.match?(~r/.html/, string)
   end
