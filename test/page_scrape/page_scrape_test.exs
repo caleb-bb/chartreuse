@@ -27,4 +27,20 @@ defmodule PageScrapeTest do
     assert expected_links == actual_links
   end
 
+  test "base_url" do
+    urls = [
+      "https://www.youtube.com/watch?v=EM7aPIpjvUw",
+      "youtube.com/watch?v=EM7aPIpjvUw",
+      "https://www.theguardian.com/sport/2022/jan/06/quarterback-trades-nfl-football-2022-offseason-russell-wilson-aaron-rodgers"
+    ]
+
+    expected_urls = [
+      "https://www.youtube.com",
+      "youtube.com",
+      "https://www.theguardian.com"
+    ]
+
+   assert Enum.map(urls,&(base_url(&1))) == expected_urls
+  end
+
 end

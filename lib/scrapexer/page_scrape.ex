@@ -15,8 +15,6 @@ defmodule PageScrape do
     |> hd()
   end
 
-  def init(urls), do: [start_urls: urls]
-
   def parse_item(url) do
     {:ok, parsed} = html_as_string(url)
     |> Floki.parse_document()
