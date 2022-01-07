@@ -10,15 +10,15 @@ defmodule PageScrape do
     response.body
   end
 
-  def base_url(url) do
-    Regex.run(~r/^.+?[^\/:](?=[?\/]|$)/, url)
-    |> hd()
-  end
-
   def parse_item(url) do
     {:ok, parsed} = html_as_string(url)
     |> Floki.parse_document()
     parsed
+  end
+
+  def base_url(url) do
+    Regex.run(~r/^.+?[^\/:](?=[?\/]|$)/, url)
+    |> hd()
   end
 
   def is_a_link?(string) do
@@ -26,31 +26,22 @@ defmodule PageScrape do
   end
 
   def complete_incomplete_link(link,domain) do
-    if Regex.match?(~r/html/,link) and not Regex.match?(~r/http/,link) do
-      unless String.at(link,0) == "/", do: domain <> "/" <> link, else: domain <> link
-    else
-      link
+    if not Regex.match?(~r/https/,link) do
+      case String.at(link,0) do
+        "/" -> domain <> link
+        "#" -> domain <> "/" <> String.slice(link,1..-1)
+        _ -> domain <> "/" <> link
+      end
+      else
+        link
      end
-  end
-
-  def site_text(url) do
-    url
-    |> retrieve_from_url("p")
   end
 
   def links_from_html(parsed_doc) do
     parsed_doc
-    |> Floki.find("a")
-    |> Enum.flat_map(&(elem(&1,1)))
-    |> Enum.filter(&(elem(&1,0) == "href"))
-    |> Enum.map(&(elem(&1,1)))
+    |> Floki.attribute("a","href")
     end
 
-  def links_from_url(url) do
-    url
-    |> parse_item
-    |> links_from_html
-  end
 
   def domain_links_from_html(parsed_doc, domain) do
     parsed_doc
@@ -71,6 +62,51 @@ defmodule PageScrape do
     url
     |> base_url
     |> domain_links_from_url(url)
+  end
+
+  def links_from_url(url) do
+    url
+    |> parse_item
+    |> links_from_html
+  end
+
+  def multi_filter_out(parsed_doc,selectors) do
+    case selectors do
+      [] -> parsed_doc
+      [first | rest] -> multi_filter_out(Floki.filter_out(parsed_doc, first), rest)
+    end
+  end
+
+  def find(parsed_doc,selector) when is_tuple(parsed_doc) do
+      Floki.find(parsed_doc,selector)
+  end
+
+  def find(parsed_doc,selector) when is_list(parsed_doc) do
+    Enum.flat_map(parsed_doc,&(Floki.find(&1,selector)))
+  end
+
+  def sequential_find(parsed_doc,selectors) do
+    case selectors do
+      [] -> parsed_doc
+      [first | rest] -> sequential_find(find(parsed_doc,first), rest)
+    end
+  end
+
+  def text_from_parsed(parsed) do
+    parsed
+    |> sequential_find(["p","span"])
+    |> Enum.uniq
+    |> List.flatten
+    |> Enum.map(&(elem(&1,2)))
+    |> List.flatten
+    |> Enum.filter(&(is_bitstring(&1)))
+    |> Enum.join
+  end
+
+  def text_from_url(url) do
+    url
+    |> parse_item
+    |> text_from_parsed
   end
 
 end

@@ -34,13 +34,40 @@ defmodule PageScrapeTest do
       "https://www.theguardian.com/sport/2022/jan/06/quarterback-trades-nfl-football-2022-offseason-russell-wilson-aaron-rodgers"
     ]
 
-    expected_urls = [
+    expected_output = [
       "https://www.youtube.com",
       "youtube.com",
       "https://www.theguardian.com"
     ]
 
-   assert Enum.map(urls,&(base_url(&1))) == expected_urls
+    actual_output = Enum.map(urls,&(base_url(&1)))
+
+   assert actual_output == expected_output
+  end
+
+  test "is_a_link?" do
+    urls? = ["https://www.thing.com/what/what/new/thing",
+            "The quick brown fox jumps over the lazy dog",
+            "grabsabsabasdfax.html"]
+
+    expected_truth_vals = [true,false,true]
+    actual_truth_vals = Enum.map(urls?,&(is_a_link?(&1)))
+
+    assert actual_truth_vals == expected_truth_vals
+  end
+
+  test "complete_incomplete_link" do
+    incompletes? = ["https://www.something.com",
+                    "/thing.html",
+                    "otherthing.html"]
+
+    expected_completes = ["https://www.something.com",
+                    "https://www.something.com/thing.html",
+                    "https://www.something.com/otherthing.html"]
+
+    actual_completes = Enum.map(incompletes?,&(complete_incomplete_link(&1,"https://www.something.com")))
+
+    assert actual_completes == expected_completes
   end
 
 end
