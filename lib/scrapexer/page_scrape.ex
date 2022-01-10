@@ -65,7 +65,7 @@ defmodule PageScrape do
 
   def links_from_url(url) do
     url
-    |> parse_item
+j    |> parse_item
     |> links_from_html
   end
 
