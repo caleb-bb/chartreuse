@@ -26,7 +26,7 @@ defmodule PageScrape do
   end
 
   def complete_incomplete_link(link,domain) do
-    if not Regex.match?(~r/https/,link) do
+    if not Regex.match?(~r/https?/,link) do
       case String.at(link,0) do
         "/" -> domain <> link
         "#" -> domain <> "/" <> String.slice(link,1..-1)
@@ -49,7 +49,6 @@ defmodule PageScrape do
     |> Enum.map(&(complete_incomplete_link(&1,domain) ))
     |> Enum.filter(&(Regex.match?(~r/#{domain}/,&1) ))
     |> Enum.uniq
-    |> Enum.map(&(complete_incomplete_link(&1,domain)))
   end
 
   def domain_links_from_url(domain,url) do
@@ -77,30 +76,9 @@ defmodule PageScrape do
     end
   end
 
-  def find(parsed_doc,selector) when is_tuple(parsed_doc) do
-      Floki.find(parsed_doc,selector)
-  end
-
-  def find(parsed_doc,selector) when is_list(parsed_doc) do
-    Enum.flat_map(parsed_doc,&(Floki.find(&1,selector)))
-  end
-
-  def sequential_find(parsed_doc,selectors) do
-    case selectors do
-      [] -> parsed_doc
-      [first | rest] -> sequential_find(find(parsed_doc,first), rest)
-    end
-  end
-
   def text_from_parsed(parsed) do
     parsed
-    |> sequential_find(["p","span"])
-    |> Enum.uniq
-    |> List.flatten
-    |> Enum.map(&(elem(&1,2)))
-    |> List.flatten
-    |> Enum.filter(&(is_bitstring(&1)))
-    |> Enum.join
+    |> Floki.text(deep: true)
   end
 
   def text_from_url(url) do
