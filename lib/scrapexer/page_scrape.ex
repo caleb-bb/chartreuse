@@ -65,7 +65,7 @@ defmodule PageScrape do
 
   def links_from_url(url) do
     url
-j    |> parse_item
+    |> parse_item
     |> links_from_html
   end
 
@@ -78,7 +78,8 @@ j    |> parse_item
 
   def text_from_parsed(parsed) do
     parsed
-    |> Floki.text(deep: true)
+    |> Floki.find("p")
+    |> Floki.text()
   end
 
   def text_from_url(url) do

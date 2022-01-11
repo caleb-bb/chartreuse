@@ -10,10 +10,8 @@ defmodule Scrapexer do
   def create_directory_name(url) do
     url
     |> PageScrape.base_url()
-    |> String.split("www.")
-    |> tl
-    |> hd
     |> String.split(".")
+    |> tl
     |> hd
   end
 
