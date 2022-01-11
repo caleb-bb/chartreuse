@@ -7,44 +7,57 @@ defmodule Scrapexer do
   if it comes from the database, an external API or others.
   """
 
-  def create_directory_name(url) do
+  def base_name(url) do
     url
-    |> PageScrape.base_url()
+    |> PageScrape.base_url
     |> String.split(".")
     |> tl
     |> hd
   end
 
-  def create_html_file_name(url) do
-    filename =
-      url
-      |> String.split(".org")
-      |> tl
-      |> hd
-      # replace slashes with underscores to avoid directory problems
-      |> String.replace(~r/\//, "_")
+  def treat_url(url) do
+    String.trim(url,"https://")
+    |> String.split("/")
+    |> tl
+  end
 
-    case filename do
-      "" -> "main.html"
-      _ -> filename
+  def path_from_treated(treated_url,contents,domain) do
+    [head | tail] = treated_url
+    IO.inspect(treated_url)
+    File.mkdir_p(head)
+
+    case tail do
+      [] -> File.write("#{head}/" <> head,contents)
+            IO.puts(domain)
+            File.cd("/home/caleb/elixir/scrapexer/#{domain}")
+      _ ->  File.cd(head)
+            path_from_treated(tail,contents,domain)
     end
   end
 
-  def write_html(url) do
-    directory = create_directory_name(url)
-    filename = create_html_file_name(url)
-    path = directory <> "/" <> filename
-    text = PageScrape.html_as_string(url)
-
-    File.mkdir(directory)
-    {:ok, file} = File.open(path, [:write, :read, :utf8])
-
-    IO.puts(file, text)
+  def directory_from_url(url) do
+    url
+    |> PageScrape.base_url
+    |> base_name
+    |> File.mkdir_p
   end
 
-  def write_all_html(url) do
-    Spider.domain_crawler(url)
-    |> Enum.map(fn x -> write_html(x) end)
+  def path_from_url(url) do
+    html = PageScrape.html_as_string(url)
+    domain = base_name(url)
+
+    url
+    |> treat_url
+    |> path_from_treated(html,domain)
   end
+
+  def generate_directory(url_list) do
+    directory_from_url(hd(url_list))
+    File.cd(base_name(hd(url_list)))
+
+    Enum.map(url_list, &(path_from_url(&1)))
+  end
+
+
 
 end
