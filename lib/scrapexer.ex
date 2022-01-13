@@ -35,6 +35,16 @@ defmodule Scrapexer do
     end
   end
 
+  def write_single_image(image_tuple) do
+    File.write(elem(image_tuple,0),elem(image_tuple,1))
+  end
+
+  def save_images(url) do
+    url
+    |> PageScrape.images_from_url
+    |> Enum.map(&(write_single_image(&1)))
+  end
+
   def directory_from_url(url) do
     url
     |> PageScrape.base_url

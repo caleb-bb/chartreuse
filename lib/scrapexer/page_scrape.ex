@@ -37,10 +37,36 @@ defmodule PageScrape do
      end
   end
 
-  def links_from_html(parsed_doc) do
+  def shorten_filename(filename) do
+    filename
+    |> String.slice(0..30)
+    |> Kernel.<>(".png")
+  end
+
+  def images_from_url(url) do
+    alts = url
+    |> parse_item
+    |> Floki.attribute("img","alt")
+    |> Enum.map(&(shorten_filename(&1)))
+
+    pictures = url
+    |> parse_item
+    |> Floki.attribute("img","src")
+    |> Enum.map(&(String.trim(&1,"//")))
+    |> Enum.map(&(html_as_string(&1)))
+
+    Enum.zip(alts,pictures)
+  end
+
+    def links_from_html(parsed_doc) do
     parsed_doc
     |> Floki.attribute("a","href")
     end
+
+  def pics_from_html(parsed_doc) do
+    parsed_doc
+    |> Floki.attribute("img","src")
+  end
 
 
   def domain_links_from_html(parsed_doc, domain) do
