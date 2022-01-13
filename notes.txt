@@ -1,0 +1,14 @@
+In order to save an image, I need:
+
+   1. Its filename and extension, which are available from the headers in the response to a GET request to the image URL. Find a way to consistently filter and get only the filename/extension
+   2. The actual data, which is available from the body of a GET request to the image URL.
+
+My idea is to get a list of both of those things, make the filename/ext into the filename for the local save, and then save the data that way. So File.write(filename/extension,data). The function that does this can then be called at the end of each loop in the file directory creation thing.
+
+The process for doing this:
+
+    1. Make a get request to the image URL (already have a way of extracting these)
+    2. Pipe the response header into a function that plucks out the filename. That function should grab the second element of the tuple whose first element is x-cloud-object-name
+    3. Sanitize that element, probably by String.split("/") |> tl. Alternately I could just take the last 30 chars, which guarantees the extension and makes a unique name very probable.
+
+The function that does the above will be mapped to a list of image URLs obtained by using Floki.attribute("img","src"), which I already have in a function. This function calls that Floki function on an html doc, BUT it has to make an additional http request so this is not a pure function. Remember that when decoupling stuff on Monday!
