@@ -10,6 +10,16 @@ defmodule PageScrape do
     response.body
   end
 
+  def extract_header(url,pattern) do
+    {:ok, response} = HTTPoison.get(url)
+    headers = response.headers
+    |> IO.inspect
+    |> Enum.filter(&(elem(&1,0) =~ "object-name"))
+    |> IO.inspect
+    |> hd
+    |> elem(1)
+  end
+
   def parse_item(url) do
     {:ok, parsed} = html_as_string(url)
     |> Floki.parse_document()
