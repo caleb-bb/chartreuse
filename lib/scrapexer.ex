@@ -36,13 +36,14 @@ defmodule Scrapexer do
   end
 
   def write_single_image(image_tuple) do
+    IO.inspect(image_tuple)
     File.write(elem(image_tuple,0),elem(image_tuple,1))
   end
 
-  def save_images(url) do
+  def save_images(url,pattern) do
     url
-    |> PageScrape.images_from_url
-    |> Enum.map(&(write_single_image(&1)))
+    |> PageScrape.images_from_url(pattern)
+    |> Enum.map(&write_single_image(&1))
   end
 
   def directory_from_url(url) do
@@ -65,7 +66,7 @@ defmodule Scrapexer do
     directory_from_url(hd(url_list))
     File.cd(base_name(hd(url_list)))
 
-    Enum.map(url_list, &(path_from_url(&1)))
+    Enum.map(url_list, &path_from_url(&1))
   end
 
 

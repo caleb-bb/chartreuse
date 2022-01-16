@@ -13,11 +13,9 @@ defmodule PageScrape do
   def extract_header(url,pattern) do
     {:ok, response} = HTTPoison.get(url)
     headers = response.headers
-    |> IO.inspect
-    |> Enum.filter(&(elem(&1,0) =~ "object-name"))
-    |> IO.inspect
-    |> hd
-    |> elem(1)
+    |> Enum.filter(&elem(&1,0 =~ pattern))
+    |> Enum.map(&elem(&1,1))
+    |> hd #later on we'll eliminate this step and assume this func to return a list
   end
 
   def parse_item(url) do
@@ -47,25 +45,36 @@ defmodule PageScrape do
      end
   end
 
-  def shorten_filename(filename) do
-    filename
-    |> String.slice(0..30)
-    |> Kernel.<>(".png")
+  def sanitize_filename(filename) do
+    sanitized = filename
+    |> IO.inspect
+    |> String.split("/")
+    |> IO.inspect
+    |> tl
+    |> IO.inspect
+    |> hd
+
+    case sanitized =~ "undefined" do
+     true -> sanitized <> ".jpg"
+      _ -> sanitized
+    end
+
   end
 
-  def images_from_url(url) do
-    alts = url
-    |> parse_item
-    |> Floki.attribute("img","alt")
-    |> Enum.map(&(shorten_filename(&1)))
-
-    pictures = url
+  def images_from_url(url,pattern) do
+    urls = url
     |> parse_item
     |> Floki.attribute("img","src")
-    |> Enum.map(&(String.trim(&1,"//")))
-    |> Enum.map(&(html_as_string(&1)))
+    |> Enum.map(&String.trim(&1,"//"))
 
-    Enum.zip(alts,pictures)
+    filenames = urls
+    |> Enum.map(&extract_header(&1,pattern))
+    |> Enum.map(&sanitize_filename(&1))
+
+    pictures = urls
+    |> Enum.map(&html_as_string(&1))
+
+    Enum.zip(filenames,pictures)
   end
 
     def links_from_html(parsed_doc) do
@@ -82,8 +91,8 @@ defmodule PageScrape do
   def domain_links_from_html(parsed_doc, domain) do
     parsed_doc
     |> links_from_html
-    |> Enum.map(&(complete_incomplete_link(&1,domain) ))
-    |> Enum.filter(&(Regex.match?(~r/#{domain}/,&1) ))
+    |> Enum.map(&complete_incomplete_link(&1,domain ))
+    |> Enum.filter(&Regex.match?(~r/#{domain}/,&1 ))
     |> Enum.uniq
   end
 
