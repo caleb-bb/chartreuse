@@ -7,7 +7,7 @@ defmodule Scrapexer do
   if it comes from the database, an external API or others.
   """
 
-  def base_name(url) do
+  def derive_base_name(url) do
     url
     |> PageScrape.base_url
     |> String.split(".")
@@ -15,58 +15,53 @@ defmodule Scrapexer do
     |> hd
   end
 
-  def treat_url(url) do
+  def derive_path_list(url) do
     String.trim(url,"https://")
     |> String.split("/")
     |> tl
   end
 
-  def path_from_treated(treated_url,contents,domain) do
-    [head | tail] = treated_url
-    IO.inspect(treated_url)
+  def write_path(path_list,domain) do
+    [head | tail] = path_list
     File.mkdir_p(head)
 
     case tail do
-      [] -> File.write("#{head}/" <> head,contents)
-            IO.puts(domain)
-            File.cd("/home/caleb/elixir/scrapexer/#{domain}")
+      [] ->  File.cd("/home/caleb/elixir/scrapexer/#{domain}")
       _ ->  File.cd(head)
-            path_from_treated(tail,contents,domain)
+            write_path(tail,domain)
     end
   end
 
-  def write_single_image(image_tuple) do
-    IO.inspect(image_tuple)
+  def write_image(image_tuple) do
     File.write(elem(image_tuple,0),elem(image_tuple,1))
   end
 
-  def save_images(url,pattern) do
+  def batch_write_image(url,pattern) do
     url
     |> PageScrape.images_from_url(pattern)
-    |> Enum.map(&write_single_image(&1))
+    |> Enum.map(&write_image(&1))
   end
 
-  def directory_from_url(url) do
+  def write_root_directory(url) do
     url
     |> PageScrape.base_url
-    |> base_name
+    |> derive_base_name
     |> File.mkdir_p
   end
 
-  def path_from_url(url) do
+  def write_path_from_url(url) do
     html = PageScrape.html_as_string(url)
-    domain = base_name(url)
+    domain = derive_base_name(url)
 
     url
-    |> treat_url
-    |> path_from_treated(html,domain)
+    |> derive_path_list
+    |> write_path(html,domain)
   end
 
-  def generate_directory(url_list) do
-    directory_from_url(hd(url_list))
-    File.cd(base_name(hd(url_list)))
-
-    Enum.map(url_list, &path_from_url(&1))
+  def write_full_directory(url_list) do
+    write_root_directory(hd(url_list))
+    File.cd(derive_base_name(hd(url_list)))
+    Enum.map(url_list, &write_path_from_url(&1))
   end
 
 
