@@ -65,6 +65,10 @@ defmodule Scrapexer do
     |> PageScrape.html_as_string
     |> IO.inspect
 
+    text = url
+    |> PageScrape.parse_item
+    |> PageScrape.text_from_parsed
+
     foo =  String.trim(url, "https://")
     bar =  String.split(foo, "/")
     |> List.last
@@ -77,6 +81,7 @@ defmodule Scrapexer do
     IO.inspect(path)
 
     File.write(path,html)
+    File.write(path <> ".txt",text)
   end
 
 end
