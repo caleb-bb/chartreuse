@@ -29,12 +29,18 @@ defmodule PageScrape do
     |> hd()
   end
 
-  def is_a_link?(string) do
-    Regex.match?(~r/http/, string) or Regex.match?(~r/.html/, string)
+  def incomplete_internal?(string) do
+    x = string
+    |> String.trim("https://")
+    |> String.split("/")
+    |> hd
+    |> Kernel.=~(".")
+    |> Kernel.not
+
   end
 
   def complete_incomplete_link(link,domain) do
-    if not Regex.match?(~r/https?/,link) do
+    if incomplete_internal?(link) do
       case String.at(link,0) do
         "/" -> domain <> link
         "#" -> domain <> "/" <> String.slice(link,1..-1)

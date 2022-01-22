@@ -21,12 +21,12 @@ defmodule Scrapexer do
     |> tl
   end
 
-  def write_path(path_list,domain) do
-    [head | tail] = path_list
+  def write_path([head | tail],domain) do
     File.mkdir_p(head)
-
     case tail do
-      [] ->  File.cd("/home/caleb/elixir/scrapexer/#{domain}")
+      [] ->
+
+        File.cd("/home/caleb/elixir/scrapexer/#{domain}")
       _ ->  File.cd(head)
             write_path(tail,domain)
     end
@@ -50,20 +50,34 @@ defmodule Scrapexer do
   end
 
   def write_path_from_url(url) do
-    html = PageScrape.html_as_string(url)
     domain = derive_base_name(url)
-
-    url
+    path_list = url
     |> derive_path_list
-    |> write_path(html,domain)
+
+    case path_list do
+      [] -> write_path([domain],domain)
+      _ -> write_path(path_list,domain)
+    end
   end
 
   def write_full_directory(url_list) do
     write_root_directory(hd(url_list))
     File.cd(derive_base_name(hd(url_list)))
+
     Enum.map(url_list, &write_path_from_url(&1))
   end
 
+  def write_html(url) do
+    html = url
+    |> PageScrape.html_as_string
 
+    path = url
+    |> derive_path_list
+
+    IO.inspect(html)
+    IO.inspect(path)
+
+    File.write(path,html)
+  end
 
 end
