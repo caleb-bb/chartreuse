@@ -18,18 +18,14 @@ defmodule Scrapexer do
   def derive_path_list(url) do
     String.trim(url,"https://")
     |> String.split("/")
-    |> tl
+    #|> tl
   end
 
-  def write_path([head | tail],domain) do
-    File.mkdir_p(head)
-    case tail do
-      [] ->
-
-        File.cd("/home/caleb/elixir/scrapexer/#{domain}")
-      _ ->  File.cd(head)
-            write_path(tail,domain)
-    end
+  def write_path(path,domain) do
+    ye_olde_pathe = "/home/caleb/elixir/scrapexer/#{domain}"
+    ye_younge_pathe = "#{ye_olde_pathe}/#{path}"
+    |> String.trim(".html")
+    File.mkdir_p(ye_younge_pathe)
   end
 
   def write_image(image_tuple) do
@@ -42,27 +38,24 @@ defmodule Scrapexer do
     |> Enum.map(&write_image(&1))
   end
 
-  def write_root_directory(url) do
-    url
-    |> PageScrape.base_url
-    |> derive_base_name
-    |> File.mkdir_p
-  end
+#  def write_root_directory(url) do
+#    url
+#    |> PageScrape.base_url
+#    |> derive_base_name
+#    |> File.mkdir_p
+#  end
 
   def write_path_from_url(url) do
     domain = derive_base_name(url)
     path_list = url
     |> derive_path_list
-
-    case path_list do
-      [] -> write_path([domain],domain)
-      _ -> write_path(path_list,domain)
-    end
+    |> Enum.join("/")
+    |> write_path(domain)
   end
 
   def write_full_directory(url_list) do
-    write_root_directory(hd(url_list))
-    File.cd(derive_base_name(hd(url_list)))
+    #write_root_directory(hd(url_list))
+    #File.cd(derive_base_name(hd(url_list)))
 
     Enum.map(url_list, &write_path_from_url(&1))
   end
@@ -70,9 +63,15 @@ defmodule Scrapexer do
   def write_html(url) do
     html = url
     |> PageScrape.html_as_string
+    |> IO.inspect
 
-    path = url
-    |> derive_path_list
+    foo =  String.trim(url, "https://")
+    bar =  String.split(foo, "/")
+    |> List.last
+    bang = foo
+    |> String.trim(".html")
+    baz = bang <> "/" <> bar
+    path = derive_base_name(url) <> "/" <> baz
 
     IO.inspect(html)
     IO.inspect(path)
