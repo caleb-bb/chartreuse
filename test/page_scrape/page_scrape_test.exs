@@ -48,15 +48,24 @@ defmodule PageScrapeTest do
    assert actual_output == expected_output
   end
 
-  test "is_a_link?" do
-    urls? = ["https://www.thing.com/what/what/new/thing",
-            "The quick brown fox jumps over the lazy dog",
-            "grabsabsabasdfax.html"]
+  test "incomplete_internal?" do
+    internals? = ["resources.html",
+                  "/resources/what.html",
+                  "#someotherlink.html",
+                  "www.notinternal.com",
+                  "www.notinternal.com/stuff.html",
+                  "https://otherplace.com",
+                  "https://www.otherplace.com",
+                  "https://otherplace.com/thing.html",
+                  "https://www.otherplace.com/thing.html",
+                  "otherplace.com",
+                  "ptherplace.com/thing.html",
+                  "https://www.not-incomplete.com/internal.html"
+    ]
+    expected_truth_vals = [true,true,true,false,false,false,false,false,false,false,false,false]
+    actual_truth_vals = Enum.map(internals?,&incomplete_internal?(&1))
 
-    expected_truth_vals = [true,false,true]
-    actual_truth_vals = Enum.map(urls?,&(is_a_link?(&1)))
-
-    assert actual_truth_vals == expected_truth_vals
+    assert expected_truth_vals == actual_truth_vals
   end
 
   test "complete_incomplete_link" do

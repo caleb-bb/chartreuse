@@ -32,9 +32,9 @@ defmodule PageScrape do
   def incomplete_internal?(string) do
     x = string
     |> String.trim("https://")
-    |> String.split("/")
-    |> hd
-    |> Kernel.=~(".")
+    |> String.trim("http://")
+    |> String.trim(".html")
+    |> Kernel.=~(~r/\w\.\w/)
     |> Kernel.not
 
   end

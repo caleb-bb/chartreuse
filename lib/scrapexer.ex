@@ -75,13 +75,13 @@ defmodule Scrapexer do
     bang = foo
     |> String.trim(".html")
     baz = bang <> "/" <> bar
-    path = derive_base_name(url) <> "/" <> baz
+    path = derive_base_name(url) <> "/" <> bang <> "/" <> bar
 
-    IO.inspect(foo)
-    IO.inspect(bar)
-    IO.inspect(bang)
-    IO.inspect(baz)
-    IO.inspect(path)
+    IO.inspect(foo, label: "foo")
+    IO.inspect(bar, label: "bar")
+    IO.inspect(bang, label: "bang")
+    IO.inspect(baz, label: "baz")
+    IO.inspect(path, label: "path")
 
     File.write(path,html)
     File.write(path <> ".txt",text)
