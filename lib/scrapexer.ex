@@ -77,7 +77,10 @@ defmodule Scrapexer do
     baz = bang <> "/" <> bar
     path = derive_base_name(url) <> "/" <> baz
 
-    IO.inspect(html)
+    IO.inspect(foo)
+    IO.inspect(bar)
+    IO.inspect(bang)
+    IO.inspect(baz)
     IO.inspect(path)
 
     File.write(path,html)
