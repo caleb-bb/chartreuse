@@ -21,9 +21,9 @@ defmodule Scrapexer do
     #|> tl
   end
 
-  def write_path(path,domain,directory) do
+  def write_path(path,directory) do
     {:ok, ye_olde_pathe} = File.cwd()
-    ye_younge_pathe = "#{ye_olde_pathe}/#{directory}/#{domain}/#{path}"
+    ye_younge_pathe = "#{ye_olde_pathe}/#{directory}/#{path}"
     |> String.trim(".html")
     File.mkdir_p(ye_younge_pathe)
   end
@@ -38,19 +38,11 @@ defmodule Scrapexer do
     |> Enum.map(&write_image(&1, path))
   end
 
-#  def write_root_directory(url) do
-#    url
-#    |> PageScrape.base_url
-#    |> derive_base_name
-#    |> File.mkdir_p
-#  end
-
   def write_path_from_url(url,directory) do
-    domain = derive_base_name(url)
     path_list = url
     |> derive_path_list
     |> Enum.join("/")
-    |> write_path(domain,directory)
+    |> write_path(directory)
   end
 
   def write_full_directory(url_list,directory) do
