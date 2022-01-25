@@ -21,9 +21,9 @@ defmodule Scrapexer do
     #|> tl
   end
 
-  def write_path(path,domain) do
-    ye_olde_pathe = "/home/caleb/elixir/scrapexer/#{domain}"
-    ye_younge_pathe = "#{ye_olde_pathe}/#{path}"
+  def write_path(path,domain,directory) do
+    {:ok, ye_olde_pathe} = File.cwd()
+    ye_younge_pathe = "#{ye_olde_pathe}/#{directory}/#{domain}/#{path}"
     |> String.trim(".html")
     File.mkdir_p(ye_younge_pathe)
   end
@@ -45,19 +45,19 @@ defmodule Scrapexer do
 #    |> File.mkdir_p
 #  end
 
-  def write_path_from_url(url) do
+  def write_path_from_url(url,directory) do
     domain = derive_base_name(url)
     path_list = url
     |> derive_path_list
     |> Enum.join("/")
-    |> write_path(domain)
+    |> write_path(domain,directory)
   end
 
-  def write_full_directory(url_list) do
+  def write_full_directory(url_list,directory) do
     #write_root_directory(hd(url_list))
     #File.cd(derive_base_name(hd(url_list)))
 
-    Enum.map(url_list, &write_path_from_url(&1))
+    Enum.map(url_list, &write_path_from_url(&1,directory))
   end
 
   def write_html(url) do
@@ -89,15 +89,19 @@ defmodule Scrapexer do
     Enum.map(url_list,&write_html(&1))
   end
 
-  def scrape_site(url) do
+  def scrape_site(url,directory) do
     list = url
     |> Spider.domain_crawler
 
     list
-    |> write_full_directory
+    |> write_full_directory(directory)
+
+    File.cd("#{directory}")
 
     list
     |> write_all_urls
+
+    File.cd("..")
   end
 
 end
