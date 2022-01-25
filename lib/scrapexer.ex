@@ -28,14 +28,14 @@ defmodule Scrapexer do
     File.mkdir_p(ye_younge_pathe)
   end
 
-  def write_image(image_tuple) do
-    File.write(elem(image_tuple,0),elem(image_tuple,1))
+  def write_image(image_tuple,path) do
+    File.write(path <> elem(image_tuple,0),elem(image_tuple,1))
   end
 
-  def batch_write_image(url,pattern) do
+  def batch_write_image(url,pattern,path) do
     url
     |> PageScrape.images_from_url(pattern)
-    |> Enum.map(&write_image(&1))
+    |> Enum.map(&write_image(&1, path))
   end
 
 #  def write_root_directory(url) do
@@ -63,28 +63,41 @@ defmodule Scrapexer do
   def write_html(url) do
     html = url
     |> PageScrape.html_as_string
-    |> IO.inspect
 
     text = url
     |> PageScrape.parse_item
     |> PageScrape.text_from_parsed
 
-    foo =  String.trim(url, "https://")
-    bar =  String.split(foo, "/")
-    |> List.last
-    bang = foo
-    |> String.trim(".html")
-    baz = bang <> "/" <> bar
-    path = derive_base_name(url) <> "/" <> bang <> "/" <> bar
+    treated_url =  String.trim(url, "https://")
 
-    IO.inspect(foo, label: "foo")
-    IO.inspect(bar, label: "bar")
-    IO.inspect(bang, label: "bang")
-    IO.inspect(baz, label: "baz")
-    IO.inspect(path, label: "path")
+    endpoint = treated_url
+    |> String.split("/")
+    |> List.last
+
+    directory_name = treated_url
+    |> String.trim(".html")
+
+    path = Enum.join([derive_base_name(url), "/", directory_name, "/", endpoint])
+    image_and_text_path = String.trim(path,".html")
 
     File.write(path,html)
-    File.write(path <> ".txt",text)
+    File.write(image_and_text_path <> ".txt",text)
+    batch_write_image(url, "object-name",image_and_text_path)
+  end
+
+  def write_all_urls(url_list) do
+    Enum.map(url_list,&write_html(&1))
+  end
+
+  def scrape_site(url) do
+    list = url
+    |> Spider.domain_crawler
+
+    list
+    |> write_full_directory
+
+    list
+    |> write_all_urls
   end
 
 end

@@ -10,12 +10,26 @@ defmodule PageScrape do
     response.body
   end
 
+  def generate_random_string do
+    random = :rand.uniform(100000000)
+    |> Integer.to_string
+    |> Base.url_encode64
+
+    random <> "/" <> random
+
+  end
+
   def extract_header(url,pattern) do
     {:ok, response} = HTTPoison.get(url)
-    headers = response.headers
-    |> Enum.filter(&elem(&1,0 =~ pattern))
+    header = response.headers
+    |> Enum.filter(&elem(&1,0) =~ pattern)
     |> Enum.map(&elem(&1,1))
-    |> hd #later on we'll eliminate this step and assume this func to return a list
+
+    case header do
+      [] -> generate_random_string
+      _ -> hd(header)
+    end
+
   end
 
   def parse_item(url) do
@@ -30,7 +44,7 @@ defmodule PageScrape do
   end
 
   def incomplete_internal?(string) do
-    x = string
+    string
     |> String.trim("https://")
     |> String.trim("http://")
     |> String.trim(".html")
@@ -53,15 +67,12 @@ defmodule PageScrape do
 
   def sanitize_filename(filename) do
     sanitized = filename
-    |> IO.inspect
     |> String.split("/")
-    |> IO.inspect
     |> tl
-    |> IO.inspect
     |> hd
 
     case sanitized =~ "undefined" do
-     true -> sanitized <> ".jpg"
+     true -> "REMOVE_THIS_ONE"
       _ -> sanitized
     end
 
@@ -81,6 +92,7 @@ defmodule PageScrape do
     |> Enum.map(&html_as_string(&1))
 
     Enum.zip(filenames,pictures)
+    |> Enum.filter(&elem(&1,0) != "REMOVE_THIS_ONE")
   end
 
     def links_from_html(parsed_doc) do
